@@ -15,14 +15,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Update File
+      - name: Fetch and Update Content
         run: |
-          echo "Automated commit made on $(date)" >> data.txt
+          # Fetch a random quote from ZenQuotes API
+          RAW_QUOTE=$(curl -s https://zenquotes.io/api/random)
+          QUOTE_TEXT=$(echo $RAW_QUOTE | grep -o '"q":"[^"]*' | head -1 | cut -d'"' -f4)
+          AUTHOR_TEXT=$(echo $RAW_QUOTE | grep -o '"a":"[^"]*' | head -1 | cut -d'"' -f4)
+          
+          if [ -z "$QUOTE_TEXT" ]; then 
+            QUOTE_TEXT="Stay focused and never give up."
+            AUTHOR_TEXT="Daily Motivation"
+          fi
+          
+          ECHO_STR="$(date '+%Y-%m-%d %H:%M:%S') | $QUOTE_TEXT — $AUTHOR_TEXT"
+          echo "$ECHO_STR" >> data.txt
 
       - name: Commit and Push
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "Mufeez Qadri"
+          git config --global user.email "mufeez.qadri22@gmail.com"
           git add data.txt
-          git commit -m "chore: auto update daily [skip ci]" || echo "No changes to commit"
+          git commit -m "chore: $(date '+%Y-%m-%d') daily update 🚀" || echo "No changes to commit"
           git push
